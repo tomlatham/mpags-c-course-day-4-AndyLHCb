@@ -45,12 +45,14 @@ PlayfairCipher::PlayfairCipher( const std::string& key )
 	auto iter2 = std::remove_if( key_.begin(),
 			key_.end(),
 			dupli		
-			)	//Puts duplicates at the back;
+			);	//Puts duplicates at the back;
 	
 	key_.erase(iter2,key_.end()); //Erase the duplicates
 
 	//store the coords of each letter
 	
+
+
 	//store the playfair cipher key map
 	
 	
