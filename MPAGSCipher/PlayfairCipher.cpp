@@ -50,12 +50,12 @@ PlayfairCipher::PlayfairCipher( const std::string& key )
 	key_.erase(iter2,key_.end()); //Erase the duplicates
 
 	//store the coords of each letter
-	using mapEntry = std::pair< std::vector<size_t>,char >;	
+	using mapEntry = std::pair< char,std::vector<size_t> >;	
 	
 	for(unsigned long i{0}; i<25; ++i){
 		std::vector<size_t> pos{i/5,i%5};
 		
-		mapEntry Addition{ std::make_pair(pos,key_[i]) };
+		mapEntry Addition{ std::make_pair(key_[i],pos) };
 		grid_.insert( Addition );
 	}
 
@@ -63,8 +63,8 @@ PlayfairCipher::PlayfairCipher( const std::string& key )
 	
 	for(auto p : grid_)
 	{
-		std::cout << "Letter:" << p.second
-			  << "|Pos:(" << p.first[0] << "," << p.first[1]  << ")" << std::endl;
+		std::cout << "Letter:" << p.first
+			  << "|Pos:(" << p.second[0] << "," << p.second[1]  << ")" << std::endl;
 	}	
 		
 
