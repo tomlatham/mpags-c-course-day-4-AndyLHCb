@@ -21,7 +21,8 @@
  */
 
 class PlayfairCipher{
-	private:
+
+		private:
 		/// The cipher key, phrase to be used
 		std::string key_{"DFAULTKEY"};
 
@@ -31,6 +32,8 @@ class PlayfairCipher{
 		/// The size of the alphabet
 		const std::vector<char>::size_type alphabetSize_ = alphabet_.size();
 
+		/// 5x5 grid to be used for playfair cihper
+		std::map< std::vector<size_t>,char > grid_;
 	public:
 		/**
 		 * create a new PlayfairCipher, converting the given string into the key
