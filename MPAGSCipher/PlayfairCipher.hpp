@@ -32,8 +32,9 @@ class PlayfairCipher{
 		/// The size of the alphabet
 		const std::vector<char>::size_type alphabetSize_ = alphabet_.size();
 
-		/// 5x5 grid to be used for playfair cihper
-		std::map< char,std::vector<size_t> > grid_;
+		/// 5x5 grid to be used for playfair cihper in both directions
+		std::map< char,std::vector<size_t> > alphaGrid_;
+		std::map< std::vector<size_t>,char > coordGrid_;
 	public:
 		/**
 		 * create a new PlayfairCipher, converting the given string into the key
