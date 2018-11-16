@@ -34,7 +34,8 @@ PlayfairCipher::PlayfairCipher( const std::string& key )
 	
 	std::string soFar{""}; //Logs all letters found so far
 
-	auto dupli = [&](char c){	//Function to find duplicates from soFar
+	//Function to find duplicates from soFar
+	auto dupli = [&](char c){
 		bool isDupli = std::find(soFar.begin(),
 				soFar.end(),
 				c) != soFar.end();
@@ -63,7 +64,7 @@ PlayfairCipher::PlayfairCipher( const std::string& key )
 	}
 
 
-	//You can print the key by uncommenting this:
+	//Printing the key and its coords
 	
 	std::cout << "KEY:" << key_ << std::endl << std::endl;
 	
@@ -73,23 +74,24 @@ PlayfairCipher::PlayfairCipher( const std::string& key )
 			  << "|Pos:(" << p.second[0] << "," << p.second[1]  << ")" << std::endl;
 	}	
 
-	/* uncomment to print out coordGrid_
-	 *
-	for(auto p : coordGrid_)
+
+	std::cout << std::endl;
+
+	//Printing the actual playfair square
+	for(size_t j{0}; j<5; j++)
 	{
-		std::cout << "Pos:(" << p.first[0] << "," << p.first[1] << ")"
-			  << "|Letter:" << p.second << std::endl;
-	}*/
+		for(size_t i{0}; i<5; i++)
+		{
+			std::vector<size_t> coords = {j,i};
+			std::cout << coordGrid_.find(coords)->second << " ";
+		}
+		std::cout << std::endl;
+	}
 	std::cout << std::endl;		
-
-
-	//store the playfair cipher key map
-	//this has already been done	
-	
 }
 
 std::string PlayfairCipher::applyCipher( const std::string& inputText,
-					const CipherMode /*cipherMode*/ ) const
+					const CipherMode cipherMode ) const
 {
 	std::string outputText;
 	// Change J → I
@@ -99,7 +101,8 @@ std::string PlayfairCipher::applyCipher( const std::string& inputText,
 			[](char c){return c == 'J' ? 'I' : c ;} );	
 
 	// If repeated chars in a digraph add an X or Q if XX
-	
+	// Processing like this is done in this block (while loop)
+
 	std::string tempString;
 	size_t counter{0};
 
@@ -125,13 +128,68 @@ std::string PlayfairCipher::applyCipher( const std::string& inputText,
 	}
 	outputText = tempString;
 
+	//This block performs the transformation on the letters
 	for(size_t i{0}; i<outputText.size(); i+=2)
 	{
+		std::vector<size_t> transformedCoords;
+		transformedCoords.resize(2);
+
 		auto l1_iter = alphaGrid_.find(outputText[i]);
 		auto l2_iter = alphaGrid_.find(outputText[i+1]);
-		std::cout<< l1_iter->second[0] << "," << l1_iter->second[1] << std::endl
-			 << l2_iter->second[0] << "," << l2_iter->second[1] << std::endl << std::endl;
+		
+		//for testing purposses, these 2 lines output the coords of every digraph if uncommented
+		//std::cout<< l1_iter->second[0] << "," << l1_iter->second[1] << std::endl
+		//	 << l2_iter->second[0] << "," << l2_iter->second[1] << std::endl << std::endl;
+		
+	
+		//are they aligned in x?
+		if(l1_iter->second[0] == l2_iter->second[0])
+		{
+			short direction = (cipherMode == CipherMode::Encrypt ? 1 : -1);
+
+			transformedCoords[1] = (l1_iter->second[1]+5+direction)%5;
+			transformedCoords[0] = l1_iter->second[0];
+
+			outputText[i] = coordGrid_.find(transformedCoords)->second;
+
+			transformedCoords[1] = (l2_iter->second[1]+5+direction)%5;
+			transformedCoords[0] = l2_iter->second[0];
+
+			outputText[i+1] = coordGrid_.find(transformedCoords)->second;
+		}
+
+		//are they aligned in y?
+		else if(l1_iter->second[1] == l2_iter->second[1])
+		{
+			short direction = (cipherMode == CipherMode::Encrypt ? 1 : -1);
+
+			transformedCoords[0] = (l1_iter->second[0]+5+direction)%5;
+			transformedCoords[1] = l1_iter->second[1];
+
+			outputText[i] = coordGrid_.find(transformedCoords)->second;
+
+			transformedCoords[0] = (l2_iter->second[0]+5+direction)%5;
+			transformedCoords[1] = l2_iter->second[1];
+
+			outputText[i+1] = coordGrid_.find(transformedCoords)->second;
+		}
+
+		//unaligned (rectangle case/corner swap)
+		else
+		{
+			transformedCoords[0] = l1_iter->second[0];
+			transformedCoords[1] = l2_iter->second[1];
+
+			outputText[i] = coordGrid_.find(transformedCoords)->second;
+
+			transformedCoords[0] = l2_iter->second[0];
+			transformedCoords[1] = l1_iter->second[1];
+
+			outputText[i+1] = coordGrid_.find(transformedCoords)->second;
+		}
 	}
+
+	
 
 	return outputText;
 }
