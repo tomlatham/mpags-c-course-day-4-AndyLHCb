@@ -2,6 +2,12 @@
 
 PlayfairCipher::PlayfairCipher( const std::string& key )
 {
+	//test if a null cipher is being used
+	if( key.empty() ){
+		std::cerr << "NO KEY GIVEN, NULL ENCRYPTION PERFORMED" << std::endl;
+		nullCipher_ = true;
+	}
+
 	//store the original key
 	key_ = key;	
 
@@ -127,6 +133,13 @@ std::string PlayfairCipher::applyCipher( const std::string& inputText,
 		}
 	}
 	outputText = tempString;
+
+	//if no key given, no encryption is performed (as per the help message
+	if(nullCipher_)
+	{
+		std::cerr << "RETURNING UNCIPHERED TEXT:" << std::endl;
+		return outputText;
+	}
 
 	//This block performs the transformation on the letters
 	for(size_t i{0}; i<outputText.size(); i+=2)

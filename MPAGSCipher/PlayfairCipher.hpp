@@ -32,6 +32,9 @@ class PlayfairCipher{
 		/// The size of the alphabet
 		const std::vector<char>::size_type alphabetSize_ = alphabet_.size();
 
+		/// If no key is given, a null cipher is used (no ciphering)
+		bool nullCipher_{false};
+
 		/// 5x5 grid to be used for playfair cihper in both directions
 		std::map< char,std::vector<size_t> > alphaGrid_;
 		std::map< std::vector<size_t>,char > coordGrid_;
