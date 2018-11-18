@@ -17,7 +17,7 @@
 
 /**
  * \class PlayfairCipher
- * \breif Encrypt or decrypt text using the Playfair cipher with a given key
+ * \brief Encrypt or decrypt text using the Playfair cipher with a given key
  */
 
 class PlayfairCipher{
@@ -35,17 +35,18 @@ class PlayfairCipher{
 		/// If no key is given, a null cipher is used (no ciphering)
 		bool nullCipher_{false};
 
+		/// Type definition for the coordinates in the 5x5 table
+		using PlayfairCoords = std::pair<size_t,size_t>;
+
 		/// 5x5 grid to be used for playfair cihper in both directions
-		std::map< char,std::vector<size_t> > alphaGrid_;
-		std::map< std::vector<size_t>,char > coordGrid_;
+		std::map< char,PlayfairCoords > alphaGrid_;
+		std::map< PlayfairCoords,char > coordGrid_;
 	public:
 		/**
 		 * create a new PlayfairCipher, converting the given string into the key
 		 *
 		 * \param key the string to be used as the key
 		 */
-
-
 		explicit PlayfairCipher( const std::string& key );
 
 		/**

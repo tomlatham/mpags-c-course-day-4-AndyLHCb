@@ -2,6 +2,11 @@
 
 PlayfairCipher::PlayfairCipher( const std::string& key )
 {
+	setKey(key);
+}
+
+void PlayfairCipher::setKey( const std::string& key )
+{
 	//test if a null cipher is being used
 	if( key.empty() ){
 		std::cerr << "NO KEY GIVEN, NULL ENCRYPTION PERFORMED" << std::endl;
@@ -45,7 +50,7 @@ PlayfairCipher::PlayfairCipher( const std::string& key )
 		bool isDupli = std::find(soFar.begin(),
 				soFar.end(),
 				c) != soFar.end();
-		soFar += c;
+		if ( !isDupli ) { soFar += c; }
 		return isDupli;	
 	};
 	
@@ -57,16 +62,12 @@ PlayfairCipher::PlayfairCipher( const std::string& key )
 	key_.erase(iter2,key_.end()); //Erase the duplicates
 
 	//store the coords of each letter
-	using mapEntry = std::pair< char,std::vector<size_t> >;	
-	using mapEntryCo = std::pair < std::vector<size_t>,char >;
-
+	alphaGrid_.clear();
+	coordGrid_.clear();
 	for(unsigned long i{0}; i<25; ++i){//can't use i<alphabetLength_ because we're throwing away J :(
-		std::vector<size_t> pos{i/5,i%5};
-		
-		mapEntry Addition{ std::make_pair(key_[i],pos) };
-		mapEntryCo Addition2{ std::make_pair(pos,key_[i]) };
-		alphaGrid_.insert( Addition );
-		coordGrid_.insert( Addition2);
+		PlayfairCoords pos{i/5,i%5};
+		alphaGrid_.insert( std::make_pair(key_[i],pos) );
+		coordGrid_.insert( std::make_pair(pos,key_[i]) );
 	}
 
 
@@ -77,7 +78,7 @@ PlayfairCipher::PlayfairCipher( const std::string& key )
 	for(auto p : alphaGrid_)
 	{
 		std::cout << "Letter:" << p.first
-			  << "|Pos:(" << p.second[0] << "," << p.second[1]  << ")" << std::endl;
+			  << "|Pos:(" << p.second.first << "," << p.second.second  << ")" << std::endl;
 	}	
 
 
@@ -88,7 +89,7 @@ PlayfairCipher::PlayfairCipher( const std::string& key )
 	{
 		for(size_t i{0}; i<5; i++)
 		{
-			std::vector<size_t> coords = {j,i};
+			PlayfairCoords coords = {j,i};
 			std::cout << coordGrid_.find(coords)->second << " ";
 		}
 		std::cout << std::endl;
@@ -141,71 +142,55 @@ std::string PlayfairCipher::applyCipher( const std::string& inputText,
 		return outputText;
 	}
 
+	const size_t direction { cipherMode == CipherMode::Encrypt ? 1u : 4u };
+
 	//This block performs the transformation on the letters
 	for(size_t i{0}; i<outputText.size(); i+=2)
 	{
-		std::vector<size_t> transformedCoords;
-		transformedCoords.resize(2);
+		PlayfairCoords transformedCoords1;
+		PlayfairCoords transformedCoords2;
 
 		auto l1_iter = alphaGrid_.find(outputText[i]);
 		auto l2_iter = alphaGrid_.find(outputText[i+1]);
 		
 		//for testing purposses, these 2 lines output the coords of every digraph if uncommented
-		//std::cout<< l1_iter->second[0] << "," << l1_iter->second[1] << std::endl
-		//	 << l2_iter->second[0] << "," << l2_iter->second[1] << std::endl << std::endl;
+		//std::cout<< l1_iter->second.first << "," << l1_iter->second.second << std::endl
+		//	 << l2_iter->second.first << "," << l2_iter->second.second << std::endl << std::endl;
 		
 	
 		//are they aligned in x?
-		if(l1_iter->second[0] == l2_iter->second[0])
+		if(l1_iter->second.first == l2_iter->second.first)
 		{
-			short direction = (cipherMode == CipherMode::Encrypt ? 1 : -1);
+			transformedCoords1.first = l1_iter->second.first;
+			transformedCoords1.second = (l1_iter->second.second+direction)%5;
 
-			transformedCoords[1] = (l1_iter->second[1]+5+direction)%5;
-			transformedCoords[0] = l1_iter->second[0];
-
-			outputText[i] = coordGrid_.find(transformedCoords)->second;
-
-			transformedCoords[1] = (l2_iter->second[1]+5+direction)%5;
-			transformedCoords[0] = l2_iter->second[0];
-
-			outputText[i+1] = coordGrid_.find(transformedCoords)->second;
+			transformedCoords2.first = l2_iter->second.first;
+			transformedCoords2.second = (l2_iter->second.second+direction)%5;
 		}
 
 		//are they aligned in y?
-		else if(l1_iter->second[1] == l2_iter->second[1])
+		else if(l1_iter->second.second == l2_iter->second.second)
 		{
-			short direction = (cipherMode == CipherMode::Encrypt ? 1 : -1);
+			transformedCoords1.first  = (l1_iter->second.first+direction)%5;
+			transformedCoords1.second = l1_iter->second.second;
 
-			transformedCoords[0] = (l1_iter->second[0]+5+direction)%5;
-			transformedCoords[1] = l1_iter->second[1];
-
-			outputText[i] = coordGrid_.find(transformedCoords)->second;
-
-			transformedCoords[0] = (l2_iter->second[0]+5+direction)%5;
-			transformedCoords[1] = l2_iter->second[1];
-
-			outputText[i+1] = coordGrid_.find(transformedCoords)->second;
+			transformedCoords2.first  = (l2_iter->second.first+direction)%5;
+			transformedCoords2.second = l2_iter->second.second;
 		}
 
 		//unaligned (rectangle case/corner swap)
 		else
 		{
-			transformedCoords[0] = l1_iter->second[0];
-			transformedCoords[1] = l2_iter->second[1];
+			transformedCoords1.first  = l1_iter->second.first;
+			transformedCoords1.second = l2_iter->second.second;
 
-			outputText[i] = coordGrid_.find(transformedCoords)->second;
-
-			transformedCoords[0] = l2_iter->second[0];
-			transformedCoords[1] = l1_iter->second[1];
-
-			outputText[i+1] = coordGrid_.find(transformedCoords)->second;
+			transformedCoords2.first  = l2_iter->second.first;
+			transformedCoords2.second = l1_iter->second.second;
 		}
-	}
 
-	
+		outputText[i]   = coordGrid_.find(transformedCoords1)->second;
+		outputText[i+1] = coordGrid_.find(transformedCoords2)->second;
+	}
 
 	return outputText;
 }
-
-
-
